@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07140d">
+  <title>Magic Auto Chat</title>
+  <style>
+    :root {
+      --bg: #07140d;
+      --panel: #0d2115;
+      --panel2: #10291a;
+      --green: #42f58a;
+      --text: #edfff3;
+      --muted: #9ab9a4;
+      --border: rgba(66, 245, 138, .24);
+      --red: #ff9b9b;
+      --yellow: #ffe09a;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse at top, #10291a 0%, var(--bg) 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      min-height: 100vh
+    }
+
+    .app {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 22px 14px 40px
+    }
+
+    header {
+      text-align: center;
+      padding: 10px 0 20px
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--green);
+      font-size: clamp(2rem, 5vw, 3rem);
+      letter-spacing: .04em
+    }
+
+    header p {
+      color: var(--muted);
+      margin: 8px auto;
+      max-width: 650px;
+      line-height: 1.5
+    }
+
+    .pill {
+      display: inline-block;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: var(--green);
+      font-size: .78rem
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: rgba(13, 33, 21, .95);
+      border-radius: 16px;
+      padding: 17px;
+      box-shadow: 0 12px 35px #0003
+    }
+
+    h2 {
+      font-size: 1.08rem;
+      margin: 0 0 14px
+    }
+
+    label {
+      display: block;
+      font-size: .88rem;
+      font-weight: 700;
+      margin: 12px 0 6px
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #2c4b36;
+      border-radius: 10px;
+      background: #07140d;
+      color: var(--text);
+      font: inherit;
+      outline: none
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px #42f58a16
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #789381
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      color: var(--text);
+      font: inherit;
+      font-weight: 750;
+      padding: 10px 13px;
+      border-radius: 10px;
+      cursor: pointer
+    }
+
+    button:hover {
+      border-color: var(--green)
+    }
+
+    button.primary {
+      background: var(--green);
+      color: #041008;
+      border-color: var(--green)
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    .full {
+      width: 100%;
+      margin-top: 14px
+    }
+
+    .hint,
+    .status {
+      font-size: .83rem;
+      line-height: 1.5;
+      color: var(--muted)
+    }
+
+    .status {
+      min-height: 1.5em;
+      margin: 10px 0 0
+    }
+
+    .status.good {
+      color: var(--green)
+    }
+
+    .status.bad {
+      color: var(--red)
+    }
+
+    .status.warn {
+      color: var(--yellow)
+    }
+
+    .security {
+      font-size: .8rem;
+      color: var(--yellow);
+      line-height: 1.5;
+      border: 1px solid #ffe09a40;
+      background: #ffe09a0a;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 12px
+    }
+
+    .chat {
+      display: flex;
+      flex-direction: column;
+      min-height: 570px;
+      padding: 0;
+      overflow: hidden
+    }
+
+    .chat-head {
+      padding: 15px 17px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px
+    }
+
+    .chat-head strong {
+      display: block
+    }
+
+    .chat-head small {
+      color: var(--muted)
+    }
+
+    .messages {
+      padding: 17px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      min-height: 330px;
+      max-height: 55vh;
+      overflow-y: auto
+    }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      margin: auto;
+      line-height: 1.6
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 10px 12px;
+      border: 1px solid #2b4c35;
+      border-radius: 13px;
+      background: #102519;
+      align-self: flex-start;
+      overflow-wrap: anywhere
+    }
+
+    .msg.mine {
+      align-self: flex-end;
+      background: #17472b;
+      border-color: #267447
+    }
+
+    .meta {
+      font-size: .73rem;
+      color: #a9c7b2;
+      margin-bottom: 5px;
+      display: flex;
+      gap: 8px;
+      justify-content: space-between
+    }
+
+    .body {
+      white-space: pre-wrap;
+      line-height: 1.45
+    }
+
+    .composer {
+      padding: 13px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 9px;
+      align-items: flex-end
+    }
+
+    .composer textarea {
+      min-height: 46px;
+      max-height: 130px;
+      resize: vertical
+    }
+
+    .composer button {
+      min-height: 46px
+    }
+
+    .foot {
+      font-size: .78rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 18px
+    }
+
+    @media(max-width:760px) {
+      .layout {
+        grid-template-columns: 1fr
+      }
+
+      .chat {
+        min-height: 520px
+      }
+
+      .messages {
+        max-height: 48vh
+      }
+
+      .card {
+        padding: 15px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <span class="pill">CLIENT-SIDE ENCRYPTION DEMO</span>
+      <h1>MAGIC AUTO CHAT</h1>
+      <p>Message लिखें, browser में encrypt करें, और उसी room व secret phrase वाले दूसरे user के पास automatic decrypt
+        होकर दिखाएँ।</p>
+    </header>
+
+    <div class="layout">
+      <aside class="card">
+        <h2>🔐 Connect to a chat</h2>
+        <label for="displayName">Your display name</label>
+        <input id="displayName" maxlength="32" placeholder="e.g. Amit">
+        <label for="roomId">Room ID (दोनों users में same)</label>
+        <input id="roomId" maxlength="60" placeholder="e.g. friends-room-27">
+        <label for="secretPhrase">Shared secret phrase</label>
+        <input id="secretPhrase" type="password" autocomplete="current-password" placeholder="Long, unique passphrase">
+        <button id="toggleSecret" type="button" class="full">Show / hide secret phrase</button>
+        <button id="connectBtn" type="button" class="primary full">Connect to Room</button>
+        <button id="disconnectBtn" type="button" class="full" disabled>Disconnect</button>
+        <p id="connectionStatus" class="status" role="status" aria-live="polite">Firebase setup पूरा करके connect करें।
+        </p>
+        <div class="security"><strong>Important:</strong> यह demo shared passphrase से AES-GCM encryption करता है। Room
+          ID और secret phrase दोनों users को अलग सुरक्षित तरीके से share करें। इसे audited WhatsApp-level security न
+          मानें।</div>
+        <p class="hint">Messages Firebase Realtime Database में encrypted form में save होते हैं। Sender name और
+          timestamp metadata visible हो सकते हैं। Internet और Firebase setup आवश्यक है।</p>
+      </aside>
+
+      <main class="card chat">
+        <div class="chat-head">
+          <div><strong id="roomTitle">No room connected</strong><small id="chatSubtitle">Connect करने के बाद chat शुरू
+              करें</small></div>
+          <span class="pill" id="cryptoBadge">LOCKED</span>
+        </div>
+        <div id="messages" class="messages" aria-live="polite">
+          <div class="empty">🔒 आपकी chat यहाँ दिखाई देगी।<br>पहले left side से room connect करें।</div>
+        </div>
+        <form id="composer" class="composer">
+          <textarea id="messageInput" maxlength="4000" placeholder="Write an encrypted message..." aria-label="Message"
+            disabled></textarea>
+          <button id="sendBtn" type="submit" class="primary" disabled>Send ↗</button>
+        </form>
+      </main>
+    </div>
+    <div class="foot">Magic Auto Chat • HTML + CSS + JavaScript + Firebase Realtime Database + Web Crypto API</div>
+  </div>
+
+  <script type="module">
+    // STEP 1: Replace these placeholder values with your own Firebase web app config.
+    const firebaseConfig = {
+      apiKey: "AIzaSyAcjvXT8HBK0xrjux7z0yX13pDS5SO3ty0",
+      authDomain: "magic-auto-chat.firebaseapp.com",
+      databaseURL: "https://magic-auto-chat-default-rtdb.firebaseio.com",
+      projectId: "magic-auto-chat",
+      storageBucket: "magic-auto-chat.firebasestorage.app",
+      messagingSenderId: "32058532668",
+      appId: "1:32058532668:web:032807d931767bcb0bf439",
+      measurementId: "G-F9YEV2V2HB"
+    };
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    import {getAuth, signInAnonymously} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+    import {getDatabase, ref, push, onChildAdded, query, limitToLast, serverTimestamp} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+    import {getAnalytics} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
+
+    const $ = (id) => document.getElementById(id);
+    const ui = {
+      name: $("displayName"), room: $("roomId"), secret: $("secretPhrase"),
+      connect: $("connectBtn"), disconnect: $("disconnectBtn"),
+      status: $("connectionStatus"), title: $("roomTitle"), subtitle: $("chatSubtitle"),
+      badge: $("cryptoBadge"), messages: $("messages"), input: $("messageInput"),
+      send: $("sendBtn"), composer: $("composer")
+    };
+
+    let db = null;
+    let auth = null;
+    let unsubscribeMessages = null;
+    let currentRoom = "";
+    let currentUser = "";
+    let cryptoKey = null;
+    let isConnected = false;
+    let seenFirstMessage = false;
+
+    function setStatus(message, type = "") {
+      ui.status.textContent = message;
+      ui.status.className = `status ${type}`.trim();
+    }
+
+    function normalizeRoom(room) {
+      return room.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-").slice(0, 60);
+    }
+
+    function bytesToBase64(bytes) {
+      let binary = "";
+      bytes.forEach(byte => binary += String.fromCharCode(byte));
+      return btoa(binary);
+    }
+
+    function base64ToBytes(base64) {
+      return Uint8Array.from(atob(base64), char => char.charCodeAt(0));
+    }
+
+    // Derive an AES-256 key locally. The passphrase itself is never sent to Firebase.
+    async function deriveKey(passphrase, room) {
+      const encoder = new TextEncoder();
+      const material = await crypto.subtle.importKey(
+        "raw", encoder.encode(passphrase), "PBKDF2", false, ["deriveKey"]
+      );
+      return crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt: encoder.encode("MagicAutoChat-v1:" + room),
+          iterations: 310000,
+          hash: "SHA-256"
+        },
+        material,
+        {name: "AES-GCM", length: 256},
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    async function encryptMessage(plainText) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encoded = new TextEncoder().encode(plainText);
+      const cipherBuffer = await crypto.subtle.encrypt(
+        {name: "AES-GCM", iv}, cryptoKey, encoded
+      );
+      return {cipher: bytesToBase64(new Uint8Array(cipherBuffer)), iv: bytesToBase64(iv)};
+    }
+
+    async function decryptMessage(message) {
+      const plainBuffer = await crypto.subtle.decrypt(
+        {name: "AES-GCM", iv: base64ToBytes(message.iv)},
+        cryptoKey,
+        base64ToBytes(message.cipher)
+      );
+      return new TextDecoder().decode(plainBuffer);
+    }
+
+    function clearMessages(message = "Chat messages यहाँ दिखाई देंगे।") {
+      ui.messages.replaceChildren();
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = message;
+      ui.messages.appendChild(empty);
+    }
+
+    function addMessage({senderName, senderUid, text, createdAt, failed = false}) {
+      const empty = ui.messages.querySelector(".empty");
+      if (empty) empty.remove();
+
+      const bubble = document.createElement("article");
+      bubble.className = "msg" + (senderUid === currentUser ? " mine" : "");
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+
+      const sender = document.createElement("span");
+      sender.textContent = senderUid === currentUser ? "You" : (senderName || "User");
+
+      const time = document.createElement("time");
+      time.textContent = createdAt ? new Date(createdAt).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}) : "just now";
+      meta.append(sender, time);
+
+      const body = document.createElement("div");
+      body.className = "body";
+      body.textContent = failed ? "🔐 Cannot decrypt this message. Check the room and secret phrase." : text;
+
+      bubble.append(meta, body);
+      ui.messages.appendChild(bubble);
+      ui.messages.scrollTop = ui.messages.scrollHeight;
+    }
+
+    async function connect() {
+      if (isConnected) return;
+
+      const displayName = ui.name.value.trim();
+      const room = normalizeRoom(ui.room.value);
+      const passphrase = ui.secret.value;
+
+      if (!displayName) return setStatus("अपना display name डालें।", "warn");
+      if (room.length < 3) return setStatus("Room ID कम से कम 3 characters का रखें।", "warn");
+      if (passphrase.length < 12) return setStatus("Shared secret phrase कम से कम 12 characters की रखें।", "warn");
+
+      const missingConfig = Object.values(firebaseConfig).some(value =>
+        typeof value !== "string" || value.startsWith("PASTE_YOUR_")
+      );
+      if (missingConfig) {
+        return setStatus("पहले code में Firebase config की placeholder values replace करें। नीचे setup guide देखें।", "bad");
+      }
+
+      if (!window.isSecureContext || !crypto.subtle) {
+        return setStatus("Web Crypto के लिए localhost या HTTPS पर यह page खोलें।", "bad");
+      }
+
+      ui.connect.disabled = true;
+      setStatus("Connecting to Firebase…");
+
+      try {
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getDatabase(app);
+        const credential = await signInAnonymously(auth);
+        currentUser = credential.user.uid;
+        currentRoom = room;
+        cryptoKey = await deriveKey(passphrase, room);
+
+        if (unsubscribeMessages) unsubscribeMessages();
+        clearMessages("Loading encrypted messages…");
+
+        const messagesQuery = query(ref(db, `rooms/${currentRoom}/messages`), limitToLast(100));
+        unsubscribeMessages = onChildAdded(messagesQuery, async (snapshot) => {
+          const data = snapshot.val();
+          if (!data || typeof data.cipher !== "string" || typeof data.iv !== "string") return;
+
+          try {
+            const text = await decryptMessage(data);
+            addMessage({
+              senderName: data.senderName,
+              senderUid: data.senderUid,
+              text,
+              createdAt: data.createdAt
+            });
+          } catch (error) {
+            addMessage({
+              senderName: data.senderName,
+              senderUid: data.senderUid,
+              text: "",
+              createdAt: data.createdAt,
+              failed: true
+            });
+          }
+        }, (error) => {
+          setStatus(`Message read error: ${error.message}`, "bad");
+        });
+
+        isConnected = true;
+        ui.title.textContent = `Room: ${currentRoom}`;
+        ui.subtitle.textContent = `Connected as ${displayName}`;
+        ui.badge.textContent = "AES-GCM ON";
+        ui.input.disabled = false;
+        ui.send.disabled = false;
+        ui.connect.disabled = true;
+        ui.disconnect.disabled = false;
+        setStatus("✅ Connected. Messages encrypt before sending.", "good");
+        ui.name.disabled = true;
+        ui.room.disabled = true;
+        ui.secret.disabled = true;
+      } catch (error) {
+        ui.connect.disabled = false;
+        setStatus(`Connection failed: ${error.message}. Firebase Auth/Database setup जाँचें।`, "bad");
+      }
+    }
+
+    function disconnect() {
+      if (unsubscribeMessages) unsubscribeMessages();
+      unsubscribeMessages = null;
+      isConnected = false;
+      cryptoKey = null;
+      currentRoom = "";
+      currentUser = "";
+      db = null;
+      auth = null;
+      ui.input.disabled = true;
+      ui.send.disabled = true;
+      ui.connect.disabled = false;
+      ui.disconnect.disabled = true;
+      ui.name.disabled = false;
+      ui.room.disabled = false;
+      ui.secret.disabled = false;
+      ui.title.textContent = "No room connected";
+      ui.subtitle.textContent = "Connect करने के बाद chat शुरू करें";
+      ui.badge.textContent = "LOCKED";
+      clearMessages("Disconnected. दोबारा connect करें।");
+      setStatus("Disconnected.", "warn");
+    }
+
+    async function sendMessage(event) {
+      event.preventDefault();
+      if (!isConnected || !db || !cryptoKey) return;
+
+      const text = ui.input.value.trim();
+      if (!text) return;
+
+      ui.send.disabled = true;
+      try {
+        const encrypted = await encryptMessage(text);
+        await push(ref(db, `rooms/${currentRoom}/messages`), {
+          ...encrypted,
+          senderUid: currentUser,
+          senderName: ui.name.value.trim().slice(0, 32),
+          createdAt: Date.now()
+        });
+        ui.input.value = "";
+        ui.input.focus();
+        setStatus("Message encrypted and sent.", "good");
+      } catch (error) {
+        setStatus(`Message send failed: ${error.message}`, "bad");
+      } finally {
+        ui.send.disabled = false;
+      }
+    }
+
+    $("toggleSecret").addEventListener("click", () => {
+      ui.secret.type = ui.secret.type === "password" ? "text" : "password";
+    });
+    ui.connect.addEventListener("click", connect);
+    ui.disconnect.addEventListener("click", disconnect);
+    ui.composer.addEventListener("submit", sendMessage);
+  </script>
+</body>
+
+</html>
